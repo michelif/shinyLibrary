@@ -4,16 +4,15 @@ library(shiny)
 function(input, output) {
 
   mydata <- reactive({
-    data <- read.csv(file = './data/libreria.csv',stringsAsFactors=F)
     if (is.null(data)){
       return(NULL)
     }
-
+    data$year_read=gsub(",","",gsub(" ","",str_extract(data$Stato.di.lettura,"20.[0-9],")))
     return(data)
   })
 
-#output$data<-mydata()
-  # Filter data based on selections
+
+ # Filter data based on selections
 
 output$authors<-renderUI({
   data<-mydata()
@@ -30,10 +29,15 @@ output$editors<-renderUI({
 output$table <- DT::renderDataTable(DT::datatable({
   req(input$edit)
   data<-mydata()
-  if (input$edit!="All")data <- data[data$Editore == input$edit,]
-  if (input$aut!="All")data <- data[data$Autore == input$aut,]
-  data
+  dataRed <- data[,c(2,3,4,5,6,7,8)]
+  if (input$edit!="All")dataRed <- dataRed[dataRed$Editore == input$edit,]
+  if (input$aut!="All")dataRed <- dataRed[dataRed$Autore == input$aut,]
+  dataRed
 }))
 
+output$summary<-DT::renderDataTable(DT::datatable({
+  data<-mydata()
+  aggregate(Numero.di.pagine ~ year_read, data,FUN=sum)
+}))
 
 }
