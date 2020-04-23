@@ -1,0 +1,1 @@
+data <- read.csv(file = './data/libreria.csv',stringsAsFactors=F)	
