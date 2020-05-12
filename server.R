@@ -1,6 +1,6 @@
 library(DT)
 library(shiny)
-
+library(data.table)
 function(input, output) {
 
   mydata <- reactive({
@@ -10,7 +10,6 @@ function(input, output) {
     data$year_read=gsub(",","",gsub(" ","",str_extract(data$Stato.di.lettura,"20.[0-9],")))
     return(data)
   })
-
 
  # Filter data based on selections
 
@@ -29,9 +28,12 @@ output$editors<-renderUI({
 output$table <- DT::renderDataTable(DT::datatable({
   req(input$edit)
   data<-mydata()
-  dataRed <- data[,c(2,3,4,5,6,7,8)]
+  setDT(data)
+  dataRed <- data[,.(Titolo,Sottotitolo,Autore,Formato,Numero.di.pagine,Editore,Data.di.pubblicazione,year_read)]
+
   if (input$edit!="All")dataRed <- dataRed[dataRed$Editore == input$edit,]
   if (input$aut!="All")dataRed <- dataRed[dataRed$Autore == input$aut,]
+  if(!input$check_anno)dataRed <- dataRed[dataRed$year_read == max(dataRed$year_read,na.rm=T)]
   dataRed
 }))
 
@@ -39,5 +41,6 @@ output$summary<-DT::renderDataTable(DT::datatable({
   data<-mydata()
   aggregate(Numero.di.pagine ~ year_read, data,FUN=sum)
 }))
+
 
 }
